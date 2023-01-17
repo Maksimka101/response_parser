@@ -1,8 +1,6 @@
-import 'package:fpdart/fpdart.dart';
+part of 'response_parser_base.dart';
 
-part 'response_parser_helpers.dart';
-
-/// {@template response_parser}
+/// {@template response_parser_base}
 /// Response Parser makes it easier to parse data and error response from server.
 ///
 /// You can write this:
@@ -65,7 +63,8 @@ part 'response_parser_helpers.dart';
 ///   factory ApiFailure.httpError(int? statusCode) = _HttpError;
 /// }
 /// ```
-/// Then you need to implement [dataExtractor], [failureParser] and [errorCatcher] this way:
+/// {@endtemplate}
+/// Then you need to implement `dataExtractor`, `failureParser` and `errorCatcher` this way:
 /// ```dart
 /// final _exampleResponseParser = ResponseParser<Response, ApiFailure>(
 ///   dataExtractor: (response) => response.data['data']!,
@@ -87,6 +86,7 @@ part 'response_parser_helpers.dart';
 ///   },
 /// );
 /// ```
+/// {@template response_parser_usage}
 /// And create top level [parseApiResponse], [parseListApiResponse] and [parseEmptyApiResponse] functions.
 /// ```dart
 /// final parseApiResponse = _exampleResponseParser.parseApiResponse;
@@ -94,106 +94,59 @@ part 'response_parser_helpers.dart';
 /// final parseEmptyApiResponse = _exampleResponseParser.parseEmptyApiResponse;
 /// ```
 /// That's all!\
-/// For more info you can take a look at example.
+/// For more info you can take a look at the example.
 /// {@endtemplate}
-class ResponseParser<Response, Failure> {
+/// See also:
+/// * [ResponseParserBase] - an extendable version of [ResponseParser].
+class ResponseParser<Response, Failure>
+    extends ResponseParserBase<Response, Failure> {
   /// {@macro response_parser}
   const ResponseParser({
-    required this.dataExtractor,
-    required this.failureParser,
-    required this.errorCatcher,
-  });
+    required DataExtractor<Response> dataExtractor,
+    required FailureParser<Failure, Response> failureParser,
+    required ErrorCatcher<Failure> errorCatcher,
+  })  : _dataExtractor = dataExtractor,
+        _failureParser = failureParser,
+        _errorCatcher = errorCatcher;
 
-  final DataExtractor<Response> dataExtractor;
-  final FailureParser<Failure, Response> failureParser;
-  final ErrorCatcher<Failure> errorCatcher;
+  final DataExtractor<Response> _dataExtractor;
+  final FailureParser<Failure, Response> _failureParser;
+  final ErrorCatcher<Failure> _errorCatcher;
 
-  /// This method parses [Failure] or [Data] from [Response].
-  ///
-  /// {@template parse_response_parameters_description}
-  /// It gains [requestAction] which will be immediately executed and [mapper] to parse [Data] from json.
-  /// {@endtemplate}
-  Future<Either<Failure, Data>> parseApiResponse<Data>({
-    required RequestAction<Response> requestAction,
-    required JsonMapper<Data> mapper,
-  }) async {
-    final responseEither = await _tryMakeRequest(
-      requestAction: requestAction,
-      errorCatcher: errorCatcher,
-    );
-
-    return responseEither.fold(left, (response) {
-      return _parseResponse(
-        response,
-        dataParser: (data) => _dataParser(data, mapper),
-        dataExtractor: dataExtractor,
-        failureParser: failureParser,
-        errorCatcher: errorCatcher,
-      );
-    });
+  @override
+  Failure catchError(Object error, StackTrace stackTrace) {
+    return _errorCatcher(error, stackTrace);
   }
 
-  /// This method parses [Failure] or List of [Data] from [Response].
-  ///
-  /// {@macro parse_response_parameters_description}
-  Future<Either<Failure, List<Data>>> parseListApiResponse<Data>({
-    required RequestAction<Response> requestAction,
-    required JsonMapper<Data> mapper,
-  }) async {
-    final responseEither = await _tryMakeRequest(
-      requestAction: requestAction,
-      errorCatcher: errorCatcher,
-    );
-
-    return responseEither.fold(Left.new, (response) {
-      return _parseResponse(
-        response,
-        dataParser: (data) => _listDataParser(data, mapper),
-        dataExtractor: dataExtractor,
-        failureParser: failureParser,
-        errorCatcher: errorCatcher,
-      );
-    });
+  @override
+  Object extractData(Response response) {
+    return _dataExtractor(response);
   }
 
-  /// This method parses [Failure] from response if any.
-  ///
-  /// It gains [requestAction] which will be immediately executed.
-  Future<Option<Failure>> parseEmptyApiResponse({
-    required RequestAction<Response> requestAction,
-  }) async {
-    final responseEither = await _tryMakeRequest(
-      requestAction: requestAction,
-      errorCatcher: errorCatcher,
-    );
-
-    return responseEither.fold(Some.new, (response) {
-      try {
-        final responseFailure = failureParser(response);
-        return optionOf(responseFailure);
-      } catch (e, st) {
-        return some(errorCatcher(e, st));
-      }
-    });
+  @override
+  Failure? parseFailure(Response response) {
+    return _failureParser(response);
   }
 }
 
-/// Typedef for function which returns data (List or Map) from [Response].
+/// {@template data_extractor}
+/// Function which returns data (List or Map) from [Response].
+///
+/// It's called when [FailureParser] returns `null`.
+/// {@endtemplate}
 typedef DataExtractor<Response> = Object Function(Response response);
 
-/// Typedef for function which parses [Failure] from [Response].
-typedef FailureParser<Failure, Response> = Failure? Function(
-  Response response,
-);
+/// {@template failure_parser}
+/// Function which parses [Failure] from [Response] if any.
+/// {@endtemplate}
+typedef FailureParser<Failure, Response> = Failure? Function(Response response);
 
-/// Typedef for function which handles catched [error] and [stackTrace].
+/// {@template error_catcher}
+/// Function which handles catched [error] and [stackTrace].
+///
+/// It's called when [DataExtractor] or [FailureParser] throws an error.
+/// {@endtemplate}
 typedef ErrorCatcher<Failure> = Failure Function(
   Object error,
   StackTrace stackTrace,
 );
-
-/// Typedef for [json] to [Data] parser.
-typedef JsonMapper<Data> = Data Function(Map<String, dynamic> json);
-
-/// Typedef for api request which returns [Response].
-typedef RequestAction<Response> = Future<Response> Function();
