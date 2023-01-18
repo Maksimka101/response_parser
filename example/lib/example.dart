@@ -49,7 +49,7 @@ Future<void> main() async {
   );
 
   final usersResult = await parseListApiResponse(
-    requestAction: () => dio.get('/user'),
+    requestAction: () => dio.get('/users'),
     mapper: User.fromJson,
   );
   usersResult.fold(
@@ -60,9 +60,9 @@ Future<void> main() async {
   final deleteUserResult = await parseEmptyApiResponse(
     requestAction: () => dio.delete('/user'),
   );
-  deleteUserResult.match(
-    (failure) => print('Error: ${failure.displayError}'),
+  deleteUserResult.match<void>(
     () => print('User is successfully deleted!'),
+    (failure) => print('Error: ${failure.displayError}'),
   );
 }
 

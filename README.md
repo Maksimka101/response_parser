@@ -1,19 +1,28 @@
 Response Parser makes it easier to parse data and error responses from the server.
 
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="License: MIT"></a>
+<a href="https://pub.dev/packages/response_parser"><img src="https://img.shields.io/pub/v/response_parser.svg" alt="Pub"></a>
+<a href="https://codecov.io/gh/Maksimka101/response_parser">
+  <img src="https://codecov.io/gh/Maksimka101/response_parser/branch/master/graph/badge.svg?token=B6UDB81K4Z"/>
+</a>
+
 ## Getting started
 
 Do you want to write pretty functions like this...
 ```dart
-Future<Either<User, ApiFailure>> fetchUser() async {
+Future<Either<ApiFailure, User>> fetchUser() async {
   return parseApiResponse(
     requestAction: () => dio.get('/user'),
     mapper: User.fromJson,
   );
 }
 ```
-...instead of this boring code?
+
+<details>
+  <summary>...instead of this boring code?</summary>
+
 ```dart
-Future<Either<User, ApiFailure>> fetchUser() async {
+Future<Either<ApiFailure, User>> fetchUser() async {
   final dio = Dio(BaseOptions(baseUrl: 'https://example.com'));
   try {
     final request = await dio.get('/user');
@@ -21,12 +30,12 @@ Future<Either<User, ApiFailure>> fetchUser() async {
     if (data == null) {
       final error = request.data?['error'];
       if (error != null) {
-        return ApiFailure.serverFailure(error['message']);
+        return left(ApiFailure.serverFailure(error['message']));
       } else {
-        return ApiFailure.unknown();
+        return left(ApiFailure.unknown());
       }
     } else {
-      return User.fromJson(data);
+      return right(User.fromJson(data));
     }
   } catch (error, st) {
     ApiFailure? apiFailure;
@@ -38,11 +47,20 @@ Future<Either<User, ApiFailure>> fetchUser() async {
         apiFailure = ApiFailure.httpError(error.response?.statusCode);
       }
     }
-    return apiFailure ?? ApiFailure.unknown();
+    return left(apiFailure ?? ApiFailure.unknown());
   }
 }
 ```
+</details>
+
 Then continue reading!
+
+<details>
+  <summary>Don't know what is `Either`?</summary>
+
+  It's a type from [`fpdart` package](https://pub.dev/packages/fpdart).
+  It's used to return either error (left) or data (right).
+</details>
 
 ## Usage
 
@@ -94,8 +112,45 @@ final parseApiResponse = _exampleResponseParser.parseApiResponse;
 final parseListApiResponse = _exampleResponseParser.parseListApiResponse;
 final parseEmptyApiResponse = _exampleResponseParser.parseEmptyApiResponse;
 ```
+
+## How it works
+
+This diagram shows how `parseApiResponse` works under the hood:
+
+![parseApiResponse diagram](assets/response_parser_diagram.png)
+
+Actually, everything in the `parseApiResponse` method is wrapped with the `try-catch` block.
+So this method is safe and can't throw any exceptions.
+
+## Another way to use
+
+Instead of creating top-level functions, you can create a class
+which extends `ResponseParserBase` and overrides it's methods:
+```dart
+class DefaultResponseParser extends ResponseParser<Response, ApiFailure>{
+  Object extractData(Response response) => response.data['data']!;
+
+  Failure? parseFailure(Response response) {
+    final error = json['error'];
+    if (error is Map<String, dynamic>) {
+      return ApiFailure.serverFailure(error['message']);
+    } else {
+      return null;
+    }
+  };
+
+  Failure catchError(Object error, StackTrace stackTrace) {
+    ApiFailure? apiFailure;
+    if (error is DioError) {
+      apiFailure = ApiFailure.httpError(error.response?.statusCode);
+    }
+
+    return apiFailure ?? ApiFailure.unknown();
+  };
+}
+```
+
+---
+
 That's all!\
 For more info, you can take a look at the example.
-
-# Sponsors
-![Qyre Logo](assets/LogoQyre.png)
