@@ -2,23 +2,11 @@ part of 'response_parser_base.dart';
 
 /// Internal
 T _dataParser<T>(Object data, JsonMapper<T> mapper) {
-  assert(
-    data is Map<String, dynamic>,
-    "Response data is supposed to be a `Map<String, dynamic>` but not `${data.runtimeType}`.\n"
-    "Data: `$data`",
-  );
-
   return mapper(data as Map<String, dynamic>);
 }
 
 /// Internal
 List<T> _listDataParser<T>(Object data, JsonMapper<T> mapper) {
-  assert(
-    data is List && data.every((element) => element is Map<String, dynamic>),
-    "Response data is supposed to be a `List<Map<String, dynamic>>` but not `${data.runtimeType}`.\n"
-    "Data: `$data`",
-  );
-
   return (data as List).map((e) => mapper(e as Map<String, dynamic>)).toList();
 }
 
