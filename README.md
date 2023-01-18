@@ -45,10 +45,16 @@ Future<Either<ApiFailure, User>> fetchUser() async {
   }
 }
 ```
-
 </details>
 
 Then continue reading!
+
+<details>
+  <summary>Don't know what is `Either`?</summary>
+
+  It's a type from [`fpdart` package](https://pub.dev/packages/fpdart).
+  It's used to return either error (left) or data (right).
+</details>
 
 ## Usage
 
@@ -107,13 +113,13 @@ This diagram shows how `parseApiResponse` works under the hood:
 
 ![parseApiResponse diagram](assets/response_parser_diagram.png)
 
-Actually everything in the `parseApiResponse` method is wrapped with `try-catch` block.
+Actually, everything in the `parseApiResponse` method is wrapped with the `try-catch` block.
 So this method is safe and can't throw any exceptions.
 
 ## Another way to use
 
-Instead of creating top level functions, you can create a class
-which extends `ResponseParserBase` and override it's methods:
+Instead of creating top-level functions, you can create a class
+which extends `ResponseParserBase` and overrides it's methods:
 ```dart
 class DefaultResponseParser extends ResponseParser<Response, ApiFailure>{
   Object extractData(Response response) => response.data['data']!;
