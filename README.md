@@ -1,5 +1,11 @@
 Response Parser makes it easier to parse data and error responses from the server.
 
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="License: MIT"></a>
+<a href="https://pub.dev/packages/response_parser"><img src="https://img.shields.io/pub/v/response_parser.svg" alt="Pub"></a>
+<a href="https://codecov.io/gh/Maksimka101/response_parser">
+  <img src="https://codecov.io/gh/Maksimka101/response_parser/branch/master/graph/badge.svg?token=B6UDB81K4Z"/>
+</a>
+
 ## Getting started
 
 Do you want to write pretty functions like this...
