@@ -9,6 +9,7 @@
       "dio": "^4.0.6",
       "response_parser": { "path": "../" },
       "freezed_annotation": "^2.1.0",
+      "fpdart": "^0.4.0",
     },
   "dev_dependencies":
     {

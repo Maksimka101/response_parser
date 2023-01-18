@@ -61,8 +61,8 @@ Future<void> main() async {
     requestAction: () => dio.delete('/user'),
   );
   deleteUserResult.match<void>(
-    (failure) => print('Error: ${failure.displayError}'),
     () => print('User is successfully deleted!'),
+    (failure) => print('Error: ${failure.displayError}'),
   );
 }
 
