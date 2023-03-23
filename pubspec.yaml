@@ -1,6 +1,6 @@
 name: response_parser
 description: Response Parser makes it easier to parse data and error response from server
-version: 1.1.0
+version: 1.1.1
 repository: https://github.com/Maksimka101/response_parser
 issue_tracker: https://github.com/Maksimka101/response_parser/issues
 
@@ -12,5 +12,5 @@ dev_dependencies:
   mocktail: ^0.3.0
   test: ^1.16.0
 
-dependencies:
-  fpdart: ">=0.4.0 <0.6.0"
+dependencies: 
+  fpdart: ^0.5.0
