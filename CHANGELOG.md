@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Update `fpdart` dependency version to the `0.5.0`.
+
 ## 1.1.0
 
 - Add `ResponseParserBase` class which can be extended to create custom response parser.
