@@ -1,3 +1,7 @@
+## 1.1.2
+
+- Update `fpdart` dependency version to the `1.0.0`.
+
 ## 1.1.1
 
 - Update `fpdart` dependency version to the `0.5.0`.
